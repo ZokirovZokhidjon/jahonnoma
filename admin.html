@@ -3,157 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jahonnoma | Админ бошқарув панели</title>
+    <title>Dashboard - Jahonnoma Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+
     <style>
-        /* ДИЗАЙН ҚИСМИ */
-        body { 
-            font-family: 'Segoe UI', Tahoma, sans-serif; 
-            background: linear-gradient(135deg, #2c3e50, #4ca1af); 
-            margin: 0; padding: 20px; color: #fff;
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #2ecc71;
+            --danger: #f72585;
+            --dark: #212529;
+            --bg: #f8f9fa;
         }
-        .login-box { 
-            max-width: 350px; margin: 100px auto; background: #fff; 
-            padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-            text-align: center; color: #2c3e50;
-        }
-        #admin-panel { display: none; max-width: 1000px; margin: auto; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
         
-        .header-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        #login-section { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 350px; text-align: center; }
         
-        .admin-section { 
-            background: rgba(255, 255, 255, 0.95); padding: 25px; 
-            margin: 20px 0; border-radius: 12px; border-left: 8px solid #f1c40f; 
-            color: #2c3e50; box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
-        }
+        .admin-container { display: none; width: 100%; max-width: 1200px; margin: 30px auto; padding: 0 20px; box-sizing: border-box; }
+        .header-box { background: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
-        h3 { margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px; color: #2c3e50; }
-        input, textarea { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 850px) { .grid-layout { grid-template-columns: 1fr; } }
         
-        button { 
-            background-color: #2c3e50; color: white; border: none; 
-            padding: 12px 25px; border-radius: 5px; cursor: pointer; 
-            font-weight: bold; transition: 0.3s; margin-top: 10px;
-        }
-        button:hover { background-color: #f1c40f; color: #000; }
-        .logout-btn { background-color: #e74c3c; padding: 10px 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: var(--dark); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         
-        /* Мобил дизайн */
-        @media (max-width: 768px) {
-            .admin-section { padding: 15px; }
-            h1 { font-size: 20px; }
-        }
+        .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-red { background: var(--danger); color: white; }
+        .btn-green { background: #2ecc71; color: white; }
+        .btn-outline { border: 2px solid #ddd; background: transparent; color: #666; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn:disabled { background: #ccc !important; cursor: not-allowed; transform: none; }
+        
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #eee; border-radius: 10px; font-size: 14px; outline: none; transition: 0.3s; box-sizing: border-box; }
+        input:focus { border-color: var(--primary); background: #fff; }
+        
+        .post-list { max-height: 500px; overflow-y: auto; }
+        .post-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: 0.3s; justify-content: space-between; }
+        .post-item:hover { background: #fcfcfc; }
+        .post-info { flex-grow: 1; color: #333; }
+        .post-info h4 { margin: 0 0 5px 0; font-size: 15px; }
+        .post-info small { color: #888; }
+        .action-btns { display: flex; gap: 5px; }
+        .btn-sm { padding: 6px 10px; border-radius: 6px; font-size: 12px; }
+        .status-msg { font-size: 13px; color: #e67e22; font-weight: bold; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
 
-<div id="login-form" class="login-box">
-    <h2>Jahonnoma</h2>
-    <p>Админ панелга кириш</p>
-    <input type="password" id="password" placeholder="Паролни киритинг">
-    <button onclick="checkPassword()">Кириш</button>
-    <br><br>
-    <a href="index.html" style="color:#2c3e50; text-decoration: none;">← Сайтга қайтиш</a>
+<div id="login-section">
+    <div class="login-card">
+        <i class="fas fa-user-shield" style="font-size: 60px; color: var(--primary); margin-bottom: 20px;"></i>
+        <h2 style="margin-bottom: 25px;">Jahonnoma Admin</h2>
+        <input type="password" id="pass" placeholder="Паролни киритинг">
+        <button class="btn btn-blue" style="width:100%; justify-content: center;" onclick="login()">КИРИШ</button>
+        <br><br>
+        <span><a href="index.html" style="color: var(--primary); text-decoration: none;">Асосий саҳифага қайтиш</a></span>
+    </div>
 </div>
 
-<div id="admin-panel">
-    <div class="header-panel">
-        <h1>Админ бошқарув панели</h1>
-        <button class="logout-btn" onclick="logout()">Чиқиш</button>
-    </div>
+<div id="admin-content" class="admin-container">
     
-    <div class="admin-section">
-        <h3>1. Мақола қўшиш</h3>
-        <input type="text" id="artTitle" placeholder="Мақола сарлавҳаси">
-        <textarea id="artDesc" rows="3" placeholder="Қисқача мазмуни (Карточка учун)"></textarea>
-        <textarea id="artFull" rows="6" placeholder="Тўлиқ мақола матни"></textarea>
-        <button onclick="saveData('articles', {title: 'artTitle', desc: 'artDesc', content: 'artFull'})">Мақолани чоп этиш</button>
+    <div class="header-box">
+        <div>
+            <h2 style="margin:0">Dashboard Panel</h2>
+            <small>Хуш келибсиз, Зоҳиджон Носирович</small>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-outline" onclick="location.reload()"><i class="fas fa-sync"></i> Янгилаш</button>
+            <button class="btn btn-red" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Чиқиш</button>
+        </div>
     </div>
 
-    <div class="admin-section">
-        <h3>2. Китоб юклаш (PDF/Word)</h3>
-        <input type="text" id="bookTitle" placeholder="Китоб номи">
-        <input type="file" id="bookFile">
-        <p style="font-size: 12px; color: gray;">*Файл номи базада сақланади</p>
-        <button onclick="saveData('books', {title: 'bookTitle'})">Китобни қўшиш</button>
-    </div>
+    <div class="grid-layout">
+        <div class="side-form">
+            
+            <div class="card">
+                <div class="card-title"><i class="fas fa-pen-fancy"></i> Мақола бошқаруви</div>
+                <input type="hidden" id="postId">
+                
+                <input type="text" id="title" placeholder="Мақола сарлавҳаси">
+                <textarea id="artDesc" rows="2" placeholder="Қисқача мазмуни (Карточка учун)"></textarea>
+                <textarea id="txt" rows="5" placeholder="Мақола матни..."></textarea>
+                
+                <div style="background: #fdfdfd; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin-bottom: 15px;">
+                    <label style="font-size:12px; font-weight: bold; display: block; margin-bottom: 5px;">КОМПЬЮТЕРДАН РАСМ ЮКЛАШ:</label>
+                    <input type="file" id="postFile" accept="image/*" onchange="uploadFile('posts', 'postFile', 'imgUrl', 'postStatus', 'pubBtn')">
+                    <div id="postStatus" class="status-msg">Юкланмоқда...</div>
+                </div>
+                <input type="text" id="imgUrl" placeholder="Юкланган расм URL манзили">
+                
+                <button class="btn btn-blue" id="pubBtn" style="width:100%; justify-content: center;" onclick="saveArticle()">
+                    <i class="fas fa-paper-plane"></i> <span id="btnText">НАШР ҚИЛИШ</span>
+                </button>
+            </div>
 
-    <div class="admin-section">
-        <h3>3. YouTube видеоси</h3>
-        <input type="text" id="videoTitle" placeholder="Видео сарлавҳаси">
-        <input type="text" id="videoLink" placeholder="YouTube Embed коди (силкаси)">
-        <button onclick="saveData('videos', {title: 'videoTitle', link: 'videoLink'})">Видеони қўшиш</button>
-    </div>
+            <div class="card">
+                <div class="card-title"><i class="fas fa-images"></i> Фотоальбом бошқаруви</div>
+                <input type="text" id="photoTitle" placeholder="Расм ёки альбом номи">
+                
+                <div style="background: #fdfdfd; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin-bottom: 15px;">
+                    <label style="font-size:12px; font-weight: bold; display: block; margin-bottom: 5px;">КОМПЬЮТЕРДАН РАСМ ТАНЛАНГ:</label>
+                    <input type="file" id="galleryFile" accept="image/*" onchange="uploadFile('gallery', 'galleryFile', 'galleryUrl', 'galleryStatus', 'galleryBtn')">
+                    <div id="galleryStatus" class="status-msg">Юкланмоқда...</div>
+                </div>
+                <input type="hidden" id="galleryUrl">
+                <button class="btn btn-green" id="galleryBtn" style="width:100%; justify-content:center;" onclick="saveGallery()">РАСМНИ АЛЬБОМГА ҚЎШИШ</button>
+            </div>
 
-    <div class="admin-section">
-        <h3>4. Фотоальбом</h3>
-        <input type="text" id="photoTitle" placeholder="Расм ёки альбом номи">
-        <input type="file" id="photoFile" multiple>
-        <button onclick="saveData('gallery', {title: 'photoTitle'})">Расмни юбориш</button>
+            <div class="card">
+                <div class="card-title"><i class="fas fa-book"></i> Китоблар саҳифаси (PDF/Word)</div>
+                <input type="text" id="bookTitle" placeholder="Китоб номи">
+                
+                <div style="background: #fdfdfd; padding: 12px; border-radius: 10px; border: 1px dashed #ccc; margin-bottom: 15px;">
+                    <label style="font-size:12px; font-weight: bold; display: block; margin-bottom: 5px;">КОМПЬЮТЕРДАН ФАЙЛ ЮКЛАШ (PDF/DOCX):</label>
+                    <input type="file" id="bookFile" accept=".pdf,.doc,.docx" onchange="uploadFile('books', 'bookFile', 'bookUrl', 'bookStatus', 'bookBtn')">
+                    <div id="bookStatus" class="status-msg">Юкланмоқда...</div>
+                </div>
+                <input type="hidden" id="bookUrl">
+                <button class="btn btn-blue" id="bookBtn" style="width:100%; justify-content:center; background:#ff9800;" onclick="saveBook()">КИТОБНИ БАЗАГА ҚЎШИШ</button>
+            </div>
+
+        </div>
+
+        <div class="side-list">
+            <div class="card">
+                <div class="card-title"><i class="fas fa-list"></i> Чоп этилган мақолалар (Таҳрирлаш/Ўчириш)</div>
+                <div class="post-list" id="postsContainer">
+                    <p style="text-align:center; color:#999;">Юкланмоқда...</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-    // Сизнинг Firebase конфигингиз
+<script>
     const firebaseConfig = {
         apiKey: "AIzaSyD0FJPkdeqjPGUX5mryf9encZuWesHV3eY",
         authDomain: "jahonnoma.firebaseapp.com",
         databaseURL: "https://jahonnoma-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "jahonnoma",
-        storageBucket: "jahonnoma.firebasestorage.app",
-        messagingSenderId: "943940674297",
-        appId: "1:943940674297:web:3b1146eff9577f3025f828"
+        storageBucket: "jahonnoma.appspot.com"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
 
-    // ПАРОЛЬ ТЕКШИРИШ
-    window.checkPassword = function() {
-        const pass = document.getElementById('password').value;
-        if (pass === "2026") {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-        } else {
-            alert("Парол хато! Қайтадан уриниб кўринг.");
+    // СЕССИЯНИ ТЕКШИРИШ (БРАУЗЕРДА ЛОГИННИ ЭСЛАБ ҚОЛИШ)
+    window.onload = function() {
+        if(localStorage.getItem("adminLoggedIn") === "true") {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            loadArticles();
         }
-    };
+    }
+
+    // ЛОГИН КИРИШ (ФАҚАТ ПАРОЛ БИЛАН)
+    function login() {
+        const pass = document.getElementById('pass').value;
+        if (pass === "2026") {
+            localStorage.setItem("adminLoggedIn", "true");
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'block';
+            loadArticles();
+        } else {
+            alert("Парол хато!");
+        }
+    }
 
     // ЧИҚИШ
-    window.logout = function() {
+    function logout() {
+        localStorage.removeItem("adminLoggedIn");
         location.reload();
-    };
+    }
 
-    // МАЪЛУМОТНИ БАЗАГА САҚЛАШ (Умумий функция)
-    window.saveData = function(path, fields) {
-        const data = {};
-        let isEmpty = false;
-
-        for (let key in fields) {
-            const val = document.getElementById(fields[key]).value;
-            if (!val) isEmpty = true;
-            data[key] = val;
+    // КОМПЬЮТЕРДАН ФАЙЛ ЮКЛАШ ТИЗИМИ (БЛОКИРОВКАЛИ)
+    async function uploadFile(folder, fileInputId, urlInputId, statusId, actionBtnId) {
+        const file = document.getElementById(fileInputId).files[0];
+        if(!file) return;
+        
+        const status = document.getElementById(statusId);
+        const actionBtn = document.getElementById(actionBtnId);
+        
+        status.style.display = "block";
+        status.style.color = "#e67e22";
+        status.innerText = "⏳ Файл серверга юкланмоқда, илтимос кутинг...";
+        actionBtn.disabled = true; // Юкланиш вақтида тугмани блоклаш
+        
+        const fileRef = storage.ref().child(folder + '/' + Date.now() + "_" + file.name);
+        try {
+            const snap = await fileRef.put(file);
+            const url = await snap.ref.getDownloadURL();
+            document.getElementById(urlInputId).value = url;
+            
+            status.style.color = "#2ecc71";
+            status.innerText = "✅ Муваффақиятли юкланди! Энди сақлашингиз мумкин.";
+            actionBtn.disabled = false; // Юкланиб бўлгач тугмани очиш
+        } catch(e) {
+            console.error(e);
+            alert("Юклашда хатолик бўлди! Firebase Storage қоидаларини (Rules) очиқлигини текширинг.");
+            status.style.color = "#f72585";
+            status.innerText = "❌ Хатолик юз берди!";
+            actionBtn.disabled = false;
         }
+    }
 
-        if (isEmpty) {
-            alert("Илтимос, барча майдонларни тўлдиринг!");
-            return;
+    // МАҚОЛА САҚЛАШ
+    function saveArticle() {
+        const id = document.getElementById('postId').value;
+        const data = {
+            title: document.getElementById('title').value,
+            desc: document.getElementById('artDesc').value,
+            content: document.getElementById('txt').value,
+            image: document.getElementById('imgUrl').value,
+            time: new Date().toLocaleString('uz-UZ')
+        };
+
+        if(!data.title || !data.content) return alert("Илтимос, сарлавҳа ва матнни тўлдиринг!");
+
+        if(id) {
+            db.ref('articles/' + id).update(data).then(() => {
+                alert("Мақола янгиланди!");
+                resetArticleForm();
+            });
+        } else {
+            db.ref('articles').push(data).then(() => {
+                alert("Мақола чоп этилди!");
+                resetArticleForm();
+            });
         }
+    }
 
-        data.date = new Date().toLocaleString();
+    // РЎЙХАТНИ ЮКЛАШ
+    function loadArticles() {
+        db.ref('articles').on('value', (snapshot) => {
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = "";
+            const data = snapshot.val();
+            if(data) {
+                Object.keys(data).reverse().forEach(key => {
+                    const post = data[key];
+                    const item = document.createElement('div');
+                    item.className = 'post-item';
+                    item.innerHTML = `
+                        <div class="post-info">
+                            <h4>${post.title}</h4>
+                            <small>${post.time || ''}</small>
+                        </div>
+                        <div class="action-btns">
+                            <button class="btn btn-blue btn-sm" onclick="editArticle('${key}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-red btn-sm" onclick="deleteArticle('${key}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = "<p style='text-align:center; color:#999;'>Мақолалар мавжуд эмас.</p>";
+            }
+        });
+    }
 
-        const newPostRef = push(ref(db, path));
-        set(newPostRef, data)
-            .then(() => {
-                alert("Муваффақиятли сақланди!");
-                // Майдонларни тозалаш
-                for (let key in fields) { document.getElementById(fields[key]).value = ""; }
-            })
-            .catch((error) => alert("Хатолик: " + error.message));
-    };
+    function editArticle(id) {
+        db.ref('articles/' + id).once('value', (snapshot) => {
+            const post = snapshot.val();
+            if(post) {
+                document.getElementById('postId').value = id;
+                document.getElementById('title').value = post.title;
+                document.getElementById('artDesc').value = post.desc || "";
+                document.getElementById('txt').value = post.content;
+                document.getElementById('imgUrl').value = post.image || "";
+                document.getElementById('btnText').innerText = "ЎЗГАРТИРИШНИ САҚЛАШ";
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        });
+    }
+
+    function deleteArticle(id) {
+        if(confirm("Ушбу мақолани ўчирмоқчимисиз?")) {
+            db.ref('articles/' + id).remove();
+        }
+    }
+
+    function resetArticleForm() {
+        document.getElementById('postId').value = "";
+        document.getElementById('title').value = "";
+        document.getElementById('artDesc').value = "";
+        document.getElementById('txt').value = "";
+        document.getElementById('imgUrl').value = "";
+        document.getElementById('btnText').innerText = "НАШР ҚИЛИШ";
+        document.getElementById('postStatus').style.display = "none";
+        document.getElementById('postFile').value = "";
+    }
+
+    // ФОТОАЛЬБОМ САҚЛАШ
+    function saveGallery() {
+        const title = document.getElementById('photoTitle').value;
+        const image = document.getElementById('galleryUrl').value;
+        
+        if(!title || !image) return alert("Илтимос, расм номини ёзинг ва расм тўлиқ юкланишини кутинг!");
+        
+        db.ref('gallery').push({ title, image, date: new Date().toLocaleString() }).then(() => {
+            alert("Расм фотоальбомга қўшилди!");
+            document.getElementById('photoTitle').value = "";
+            document.getElementById('galleryUrl').value = "";
+            document.getElementById('galleryFile').value = "";
+            document.getElementById('galleryStatus').style.display = "none";
+        });
+    }
+
+    // КИТОБ САҚЛАШ
+    function saveBook() {
+        const title = document.getElementById('bookTitle').value;
+        const fileUrl = document.getElementById('bookUrl').value;
+        
+        if(!title || !fileUrl) return alert("Илтимос, китоб номини ёзинг ва файл тўлиқ юкланишини кутинг!");
+
+        db.ref('books').push({ title, fileUrl, date: new Date().toLocaleString() }).then(() => {
+            alert("Китоб базага қўшилди!");
+            document.getElementById('bookTitle').value = "";
+            document.getElementById('bookUrl').value = "";
+            document.getElementById('bookFile').value = "";
+            document.getElementById('bookStatus').style.display = "none";
+        });
+    }
 </script>
-
 </body>
 </html>
