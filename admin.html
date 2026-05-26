@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Jahonnoma | Админ панели</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #2c3e50, #4ca1af); /* Чиройли градиент фон */
+            padding: 20px; 
+            color: #fff;
+        }
+        .login-box { 
+            max-width: 350px; margin: 100px auto; 
+            background: #ffffff; padding: 30px; 
+            border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            text-align: center; color: #2c3e50;
+        }
+        #admin-panel { display: none; }
+        .admin-section { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 25px; margin: 20px 0; 
+            border-radius: 12px; border-left: 8px solid #f1c40f; /* Олтинранг чизиқ */
+            color: #2c3e50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        h1, h3 { color: #fff; text-shadow: 1px 1px 2px #000; }
+        .admin-section h3 { color: #2c3e50; text-shadow: none; }
+        
+        input, textarea { 
+            width: 100%; margin: 10px 0; padding: 12px; 
+            border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;
+        }
+        button { 
+            background-color: #2c3e50; color: white; 
+            border: none; padding: 10px 20px; border-radius: 5px; 
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        button:hover { background-color: #f1c40f; color: #000; }
+        .logout-btn { background-color: #e74c3c; float: right; }
+        .login-box a{
+            margin-left: 25px;
+            text-align: center;
+            text-decoration: solid;
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 16px;
+            
+
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-form" class="login-box">
+    <h3>Админ панелга кириш</h3>
+    <input type="password" id="password" placeholder="Паролни киритинг">
+    <button onclick="checkPassword()">Кириш</button>
+    <a href="index.html">Асосий сахифа</a>
+</div>
+
+<div id="admin-panel">
+    <button class="logout-btn" onclick="logout()">Чиқиш</button>
+    <h1>Админ бошқарув панели</h1>
+    
+    <div class="admin-section">
+        <h3>1. Мақола қўшиш</h3>
+        <input type="text" placeholder="Мақола сарлавҳаси">
+        <textarea rows="4" placeholder="Қисқача мазмуни"></textarea>
+        <button>Мақолалар саҳифасига юбориш</button>
+    </div>
+
+    <div class="admin-section">
+        <h3>2. Китоб юклаш (PDF/Word)</h3>
+        <input type="text" placeholder="Китоб номи">
+        <input type="file">
+        <button>Китоблар саҳифасига қўшиш</button>
+    </div>
+
+    <div class="admin-section">
+        <h3>3. YouTube видеоси</h3>
+        <input type="text" placeholder="YouTube URL (embed силкаси)">
+        <button>Видеога қўшиш</button>
+    </div>
+
+    <div class="admin-section">
+        <h3>4. Фотоальбом</h3>
+        <input type="file" multiple>
+        <button>Галереяга юклаш</button>
+    </div>
+</div>
+
+<script>
+    function checkPassword() {
+        const pass = document.getElementById('password').value;
+        if (pass === "2026") {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+        } else {
+            alert("Парол хато! Қайтадан уриниб кўринг.");
+        }
+    }
+
+    function logout() {
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
