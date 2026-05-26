@@ -64,6 +64,51 @@
 <footer>
     &copy; 2026 Jahonnoma.com - Барча ҳуқуқлар ҳимояланган.
 </footer>
+<script>
 
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+const db = getDatabase();
+const articlesRef = ref(db, 'articles/');
+
+onValue(articlesRef, (snapshot) => {
+    const data = snapshot.val();
+    const container = document.getElementById("articles-container");
+    container.innerHTML = ""; // Тозалаш
+
+    for (let id in data) {
+        container.innerHTML += `
+            <div class="article-card">
+                <h3>${data[id].title}</h3>
+                <p>${data[id].content}</p>
+                <small>${data[id].date}</small>
+            </div>
+        `;
+    }
+});
+
+
+    import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database"; // Буни қўшиш керак
+import { getAnalytics } from "firebase/analytics";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD0FJPkdeqjPGUX5mryf9encZuWesHV3eY",
+  authDomain: "jahonnoma.firebaseapp.com",
+  databaseURL: "https://jahonnoma-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jahonnoma",
+  storageBucket: "jahonnoma.firebasestorage.app",
+  messagingSenderId: "943940674297",
+  appId: "1:943940674297:web:3b1146eff9577f3025f828",
+  measurementId: "G-G5N242PT6P"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app); // Database объектни яратдик
+const analytics = getAnalytics(app);
+
+export { database }; // Бошқа файлларда ишлатиш учун экспорт қиламиз
+</script>
 </body>
 </html>
